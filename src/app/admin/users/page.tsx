@@ -37,7 +37,7 @@ export default async function Users({ searchParams }: { searchParams: Promise<{ 
                   <div className="min-w-0">
                     <p className="font-semibold">
                       {merchant ? (u.storeName ? `${u.storeName} · ${u.name}` : u.name) : <Link href={`/creators/${u.id}`} className="underline decoration-flame decoration-2">{u.name}</Link>}
-                      <span className="ms-2 text-sm font-medium text-mute">{merchant ? "تاجر" : "صانع محتوى"}</span>
+                      <span className="ms-2 text-sm font-normal text-mute">{merchant ? "تاجر" : "صانع محتوى"}</span>
                     </p>
                     <p className="hint"><span dir="ltr">{u.email}</span>{u.phone ? <> · <span dir="ltr">{u.phone}</span></> : null} · سجّل {formatDate(u.createdAt)}</p>
                   </div>

@@ -1,9 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import "@fontsource/lalezar/400.css";
-import "@fontsource/ibm-plex-sans-arabic/400.css";
-import "@fontsource/ibm-plex-sans-arabic/500.css";
-import "@fontsource/ibm-plex-sans-arabic/600.css";
-import "@fontsource/ibm-plex-sans-arabic/700.css";
+import { fontVars } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,7 +11,7 @@ export const viewport: Viewport = { themeColor: "#f2ede2", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className={fontVars}>
       <body className="antialiased">{children}</body>
     </html>
   );

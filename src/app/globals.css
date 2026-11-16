@@ -11,8 +11,12 @@
   --color-flame-deep: #a92610;
   --color-flame-tint: #f5dcd3;
 
-  --font-display: "Lalezar", "IBM Plex Sans Arabic", system-ui, sans-serif;
-  --font-sans: "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* الخطوط معرّفة في src/app/fonts.ts (وزنين فقط للنص: 400 و 600) */
+@theme inline {
+  --font-display: var(--f-display-lat), var(--f-display-ar), system-ui, sans-serif;
+  --font-sans: var(--f-sans-lat), var(--f-sans-ar), system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 @layer base {
@@ -136,7 +140,7 @@
     border-top: 1.5px solid var(--color-ink);
     margin-top: 0.35rem;
     padding-top: 0.8rem;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .eyebrow {

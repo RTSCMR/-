@@ -14,7 +14,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
     <>
       <PageTitle title="ملفي" sub="هذا اللي يشوفه التاجر لما تقدّم على حملته."
         action={<Link href={`/creators/${u.id}`} className="btn btn-line btn-sm">شوف ملفك العام</Link>} />
-      {welcome && <p className="mb-6 border-s-4 border-flame bg-flame-tint px-3 py-2 font-medium">حيّاك. كمّل ملفك أول، وبعدها <Link href="/creator/campaigns" className="font-semibold underline">تصفّح الحملات</Link>.</p>}
+      {welcome && <p className="mb-6 border-s-4 border-flame bg-flame-tint px-3 py-2 font-normal">حيّاك. كمّل ملفك أول، وبعدها <Link href="/creator/campaigns" className="font-semibold underline">تصفّح الحملات</Link>.</p>}
       <ActionForm action={updateProfileAction} className="max-w-2xl space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div><label className="label" htmlFor="name">الاسم</label><input className="field" id="name" name="name" required defaultValue={u.name} maxLength={80} /></div>

@@ -26,7 +26,7 @@ export function Sar({ h, className = "", unit = true }: { h: number; className?:
   return (
     <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
       <span className={`num ${className}`}>{formatSar(h)}</span>
-      {unit && <span className="font-sans text-[0.85rem] font-medium leading-none text-mute">ر.س</span>}
+      {unit && <span className="font-sans text-[0.85rem] font-normal leading-none text-mute">ر.س</span>}
     </span>
   );
 }
@@ -111,7 +111,7 @@ export function Empty({ children }: { children: React.ReactNode }) {
 
 export function ExtLink({ href, children }: { href: string; children?: React.ReactNode }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer nofollow" dir="ltr" className="break-all font-medium underline decoration-flame decoration-2">
+    <a href={href} target="_blank" rel="noopener noreferrer nofollow" dir="ltr" className="break-all font-normal underline decoration-flame decoration-2">
       {children ?? href.replace(/^https?:\/\/(www\.)?/, "")}
     </a>
   );

@@ -124,7 +124,7 @@ export default async function Landing() {
       <footer className="mt-10 border-t-[1.5px] border-ink">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-8">
           <Logo />
-          <nav className="flex flex-wrap gap-x-5 gap-y-2 text-[0.95rem] font-medium">
+          <nav className="flex flex-wrap gap-x-5 gap-y-2 text-[0.95rem] font-normal">
             <a href="#calculator">الحاسبة</a>
             <a href="#how">كيف تشتغل</a>
             <a href="#faq">أسئلة شائعة</a>

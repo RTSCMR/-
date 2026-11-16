@@ -1,6 +1,8 @@
 import "server-only";
 import type { Prisma, Campaign, Participation } from "@prisma/client";
+import { after } from "next/server";
 import { db } from "./db";
+import { flushEmailNotifications } from "./notify";
 import { C, P, FINAL_STATUSES, EARNED_STATUSES } from "./status";
 
 type Tx = Prisma.TransactionClient;
@@ -62,6 +64,7 @@ export async function syncExpiredCampaigns() {
       if (!(e instanceof FlowError)) throw e;
     }
   }
+  if (expired.length) after(flushEmailNotifications);
 }
 
 export type Totals = {

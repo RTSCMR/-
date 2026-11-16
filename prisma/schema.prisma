@@ -168,6 +168,7 @@ model Event {
   toStatus        String
   note            String?
   createdAt       DateTime       @default(now())
+  notifiedAt      DateTime? // متى انرسل إيميل هذا الحدث (لو الإيميل مفعّل)
 
   @@index([campaignId])
   @@index([participationId])

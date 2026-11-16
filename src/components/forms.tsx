@@ -44,12 +44,12 @@ export function ActionForm({ action, children, className = "", hidden, confirm }
       {hidden && Object.entries(hidden).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
       <Pending.Provider value={pending}>{children}</Pending.Provider>
       {state?.error && (
-        <p role="alert" className="mt-3 border-s-4 border-flame bg-flame-tint px-3 py-2 text-[0.95rem] font-medium">
+        <p role="alert" className="mt-3 border-s-4 border-flame bg-flame-tint px-3 py-2 text-[0.95rem] font-normal">
           {state.error}
         </p>
       )}
       {state?.ok && (
-        <p role="status" className="mt-3 break-words border-s-4 border-ink bg-ink/5 px-3 py-2 text-[0.95rem] font-medium [overflow-wrap:anywhere]">
+        <p role="status" className="mt-3 break-words border-s-4 border-ink bg-ink/5 px-3 py-2 text-[0.95rem] font-normal [overflow-wrap:anywhere]">
           {state.ok}
         </p>
       )}

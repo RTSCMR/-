@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { createHash, randomBytes } from "node:crypto";
 import { db } from "./db";
 import {
@@ -13,6 +14,8 @@ import { C, P, PLATFORMS, SEAT_STATUSES, type Role } from "./status";
 import { computeEarning, creatorCap, depositAmount, formatSar, parseIntStrict, parseSar } from "./money";
 import { FlowError, campaignTotals, closeCampaign, maybeComplete, moveCampaign, moveParticipation } from "./workflow";
 import { saveScreenshot } from "./uploads";
+import { flushEmailNotifications } from "./notify";
+import { mailEnabled, sendMail, wrapEmail } from "./mail";
 
 export type ActionState = { error?: string; ok?: string } | null;
 
@@ -52,6 +55,7 @@ async function run(fn: () => Promise<ActionState | void>, okMessage?: string): P
   try {
     const r = await fn();
     revalidatePath("/", "layout");
+    after(flushEmailNotifications);
     return r ?? { ok: okMessage ?? "تم." };
   } catch (e) {
     if (e instanceof FlowError) return { error: e.message };
@@ -173,6 +177,7 @@ export async function createCampaignAction(_: ActionState, fd: FormData): Promis
     });
     id = c.id;
     revalidatePath("/", "layout");
+    after(flushEmailNotifications);
   } catch (e) {
     if (e instanceof FlowError) return { error: e.message };
     throw e;
@@ -274,6 +279,7 @@ export async function applyAction(_: ActionState, fd: FormData): Promise<ActionS
     });
     id = p.id;
     revalidatePath("/", "layout");
+    after(flushEmailNotifications);
   } catch (e) {
     if (e instanceof FlowError) return { error: e.message };
     throw e;
@@ -463,7 +469,15 @@ export async function createResetLinkAction(_: ActionState, fd: FormData): Promi
     await db.passwordReset.create({ data: { userId: user.id, tokenHash: sha256(token), expiresAt: new Date(Date.now() + 864e5) } });
     const h = await headers();
     const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
-    return { ok: `أرسل هذا الرابط لـ ${user.name} (صالح 24 ساعة، لمرة واحدة): ${origin}/reset/${token}` };
+    const link = `${process.env.APP_URL?.replace(/\/$/, "") || origin}/reset/${token}`;
+    if (mailEnabled()) {
+      const sent = await sendMail({
+        to: user.email, subject: "ألف: رابط تغيير كلمة المرور",
+        html: wrapEmail({ title: "تغيير كلمة المرور", body: "اضغط الزر وحط كلمة مرور جديدة. الرابط صالح 24 ساعة ولمرة واحدة. لو ما طلبته، تجاهل الرسالة.", cta: "غيّر كلمة المرور", url: link }),
+      });
+      if (sent) return { ok: `انرسل رابط الاسترجاع على إيميل ${user.name}.` };
+    }
+    return { ok: `أرسل هذا الرابط لـ ${user.name} (صالح 24 ساعة، لمرة واحدة): ${link}` };
   });
 }
 

@@ -97,7 +97,7 @@ export function ParticipationPanel({ p, c, viewer }: { p: PWithCreator; c: Campa
     <article className="card p-4" id={`p-${p.id}`}>
       <header className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <Link href={`/creators/${p.creatorId}`} className="text-xl font-bold underline decoration-flame decoration-2">{p.creator.name}</Link>
+          <Link href={`/creators/${p.creatorId}`} className="text-xl font-semibold underline decoration-flame decoration-2">{p.creator.name}</Link>
           <p className="hint">{[p.creator.city, p.creator.niche].filter(Boolean).join(" · ") || "ما كمّل ملفه"}</p>
         </div>
         <StatusBadge kind="participation" status={p.status} />

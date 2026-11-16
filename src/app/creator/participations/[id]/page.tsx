@@ -77,7 +77,7 @@ export default async function MyParticipation({ params }: { params: Promise<{ id
         {(p.status === P.PUBLISHED || p.status === P.VIEWS_REJECTED) && !canReport && (
           <>
             <h2 className="text-2xl">الفيديو منشور. خلّه يجمع مشاهدات</h2>
-            <p className="mt-2">إدخال المشاهدات يفتح يوم <span className="font-bold">{formatDate(due, true)}</span>.</p>
+            <p className="mt-2">إدخال المشاهدات يفتح يوم <span className="font-semibold">{formatDate(due, true)}</span>.</p>
           </>
         )}
         {canReport && (

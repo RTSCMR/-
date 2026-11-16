@@ -50,7 +50,7 @@ export default async function AdminHome() {
     <>
       <PageTitle title="لوحة المشرف" />
       {!settings.bankIban && (
-        <p className="mb-6 border-s-4 border-flame bg-flame-tint px-3 py-2 font-medium">
+        <p className="mb-6 border-s-4 border-flame bg-flame-tint px-3 py-2 font-normal">
           ما أضفت الحساب البنكي للحين، والتجار ما يقدرون يحوّلون العربون بدونه. <Link href="/admin/settings" className="font-semibold underline">أضفه من الإعدادات</Link>.
         </p>
       )}
