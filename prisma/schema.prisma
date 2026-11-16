@@ -1,0 +1,176 @@
+// مخطط قاعدة بيانات «ألف».
+// SQLite لا يدعم enum في Prisma، فالحالات نصوص معرّفة في src/lib/status.ts.
+// كل المبالغ أعداد صحيحة بالهللة (1 ريال = 100 هللة) لتفادي أخطاء الكسور.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String // MERCHANT | CREATOR | ADMIN
+  phone        String?
+  createdAt    DateTime @default(now())
+
+  // التاجر
+  storeName String?
+  storeUrl  String?
+
+  // صانع المحتوى (الملف العام)
+  city      String?
+  niche     String?
+  bio       String?
+  tiktok    String?
+  instagram String?
+  snapchat  String?
+  portfolio String? // روابط أعمال سابقة، رابط في كل سطر
+  iban      String? // لا يظهر إلا للمشرف
+
+  sessions       Session[]
+  campaigns      Campaign[]
+  participations Participation[]
+  events         Event[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Setting {
+  id                Int    @id @default(1)
+  depositPercent    Int    @default(20)
+  commissionPercent Int    @default(15)
+  viewsWaitDays     Int    @default(7)
+  bankName          String @default("")
+  bankAccountName   String @default("")
+  bankIban          String @default("")
+}
+
+model Campaign {
+  id          String @id @default(cuid())
+  merchantId  String
+  merchant    User   @relation(fields: [merchantId], references: [id])
+  productName String
+  storeUrl    String
+  brief       String
+  platform    String // TIKTOK | INSTAGRAM | SNAPCHAT
+  saudiOnly   Boolean @default(true)
+
+  cpmHalalas    Int // سعر الألف مشاهدة
+  budgetHalalas Int // سقف الميزانية
+  durationDays  Int
+  maxCreators   Int @default(1)
+
+  // نسخة من النسب وقت إنشاء الحملة، حتى لا يتغير الاتفاق لو عدّل المشرف الإعدادات لاحقاً
+  depositPercent    Int
+  commissionPercent Int
+  depositHalalas    Int
+
+  status           String    @default("AWAITING_DEPOSIT")
+  depositReference String?
+  openedAt         DateTime?
+  endsAt           DateTime?
+  completedAt      DateTime?
+  settledAt        DateTime?
+  createdAt        DateTime  @default(now())
+
+  participations Participation[]
+  events         Event[]
+  payments       Payment[]
+
+  @@index([status])
+  @@index([merchantId])
+}
+
+model Participation {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  creatorId  String
+  creator    User     @relation(fields: [creatorId], references: [id])
+  status     String   @default("APPLIED")
+
+  // التقديم
+  pitch        String
+  accountLinks String
+  workLinks    String
+
+  // المسودة والنشر
+  draftUrl     String?
+  draftNote    String?
+  revisionNote String?
+  postUrl      String?
+  publishedAt  DateTime?
+
+  // المشاهدات
+  reportedViews    Int?
+  screenshotFile   String?
+  viewsSubmittedAt DateTime?
+  approvedViews    Int?
+  reviewNote       String?
+
+  // الحساب (يُثبّت عند اعتماد المشاهدات)
+  grossHalalas      Int?
+  commissionHalalas Int?
+  netHalalas        Int?
+  paidAt            DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  events   Event[]
+  payments Payment[]
+
+  @@unique([campaignId, creatorId])
+  @@index([creatorId])
+  @@index([status])
+}
+
+// السجل الزمني: كل تغيير حالة على حملة أو مشاركة
+model Event {
+  id              String         @id @default(cuid())
+  campaignId      String
+  campaign        Campaign       @relation(fields: [campaignId], references: [id])
+  participationId String?
+  participation   Participation? @relation(fields: [participationId], references: [id])
+  actorId         String?
+  actor           User?          @relation(fields: [actorId], references: [id])
+  fromStatus      String?
+  toStatus        String
+  note            String?
+  createdAt       DateTime       @default(now())
+
+  @@index([campaignId])
+  @@index([participationId])
+}
+
+// التحويلات البنكية اليدوية التي يسجلها المشرف
+model Payment {
+  id              String         @id @default(cuid())
+  kind            String // DEPOSIT | FINAL | REFUND | PAYOUT
+  campaignId      String
+  campaign        Campaign       @relation(fields: [campaignId], references: [id])
+  participationId String?
+  participation   Participation? @relation(fields: [participationId], references: [id])
+  amountHalalas   Int
+  reference       String?
+  note            String?
+  createdAt       DateTime       @default(now())
+
+  @@index([campaignId])
+}
