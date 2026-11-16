@@ -49,7 +49,7 @@ export function ActionForm({ action, children, className = "", hidden, confirm }
         </p>
       )}
       {state?.ok && (
-        <p role="status" className="mt-3 border-s-4 border-ink bg-ink/5 px-3 py-2 text-[0.95rem] font-medium">
+        <p role="status" className="mt-3 break-words border-s-4 border-ink bg-ink/5 px-3 py-2 text-[0.95rem] font-medium [overflow-wrap:anywhere]">
           {state.ok}
         </p>
       )}

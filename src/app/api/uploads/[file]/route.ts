@@ -13,7 +13,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ file: stri
   const allowed = user.role === "ADMIN" || (p && (p.creatorId === user.id || p.campaign.merchantId === user.id));
   if (!allowed) return new Response("Not found", { status: 404 });
   try {
-    const buf = await readFile(path.join(UPLOAD_DIR, file));
+    const buf = await readFile(path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, file));
     return new Response(new Uint8Array(buf), {
       headers: { "Content-Type": MIME_BY_EXT[file.split(".")[1]], "Cache-Control": "private, max-age=3600", "X-Content-Type-Options": "nosniff" },
     });

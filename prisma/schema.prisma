@@ -34,7 +34,10 @@ model User {
   portfolio String? // روابط أعمال سابقة، رابط في كل سطر
   iban      String? // لا يظهر إلا للمشرف
 
+  notificationsSeenAt DateTime?
+
   sessions       Session[]
+  passwordResets PasswordReset[]
   campaigns      Campaign[]
   participations Participation[]
   events         Event[]
@@ -49,6 +52,17 @@ model Session {
   createdAt DateTime @default(now())
 
   @@index([userId])
+}
+
+// رابط استرجاع كلمة المرور، ينشئه المشرف ويرسله للمستخدم يدوياً (ما فيه خدمة إيميل)
+model PasswordReset {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
 }
 
 model Setting {

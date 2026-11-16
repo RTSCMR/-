@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/auth";
 import { updateProfileAction } from "@/lib/actions";
 import { PageTitle } from "@/components/ui";
 import { ActionForm, Submit } from "@/components/forms";
+import { PasswordForm } from "@/components/password-form";
 
 export const metadata = { title: "حسابي" };
 
@@ -17,6 +18,7 @@ export default async function MerchantAccount() {
         <div><label className="label" htmlFor="phone">الجوال</label><input className="field" id="phone" name="phone" dir="ltr" inputMode="tel" defaultValue={u.phone ?? ""} maxLength={20} /></div>
         <Submit>احفظ</Submit>
       </ActionForm>
+      <PasswordForm />
     </>
   );
 }

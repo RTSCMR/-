@@ -4,7 +4,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { FlowError } from "./workflow";
 
-export const UPLOAD_DIR = path.resolve(process.env.UPLOAD_DIR || "./uploads");
+export const UPLOAD_DIR = path.resolve(/*turbopackIgnore: true*/ process.env.UPLOAD_DIR || "./uploads");
 const MAX = 5 * 1024 * 1024;
 
 const SIGNATURES: { ext: string; mime: string; test: (b: Buffer) => boolean }[] = [
@@ -24,6 +24,6 @@ export async function saveScreenshot(file: unknown): Promise<string> {
   if (!sig) throw new FlowError("الصورة لازم تكون PNG أو JPG أو WebP.");
   await mkdir(UPLOAD_DIR, { recursive: true });
   const name = `${randomBytes(16).toString("hex")}.${sig.ext}`;
-  await writeFile(path.join(UPLOAD_DIR, name), buf);
+  await writeFile(path.join(/*turbopackIgnore: true*/ UPLOAD_DIR, name), buf);
   return name;
 }

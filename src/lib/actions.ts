@@ -2,6 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { createHash, randomBytes } from "node:crypto";
 import { db } from "./db";
 import {
   createSession, destroySession, getUser, hashPassword, homeFor, loginAllowed, loginFailed, loginSucceeded, verifyPassword,
@@ -428,4 +430,59 @@ export async function updateSettingsAction(_: ActionState, fd: FormData): Promis
     };
     await db.setting.upsert({ where: { id: 1 }, update: data, create: { id: 1, ...data } });
   }, "انحفظت الإعدادات. تنطبق على الحملات الجديدة فقط.");
+}
+
+// ---------- كلمة المرور ----------
+
+const sha256 = (v: string) => createHash("sha256").update(v).digest("hex");
+const rawPassword = (fd: FormData, k: string) => (typeof fd.get(k) === "string" ? (fd.get(k) as string) : "");
+
+function checkNewPassword(pw: string) {
+  if (pw.length < 8) throw new FlowError("كلمة المرور الجديدة لازم تكون 8 أحرف على الأقل.");
+  if (pw.length > 200) throw new FlowError("كلمة المرور طويلة جداً.");
+}
+
+export async function changePasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  return run(async () => {
+    const user = await actor("MERCHANT", "CREATOR", "ADMIN");
+    if (!(await verifyPassword(rawPassword(fd, "current"), user.passwordHash))) throw new FlowError("كلمة المرور الحالية غير صحيحة.");
+    const next = rawPassword(fd, "next");
+    checkNewPassword(next);
+    await db.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next) } });
+  }, "تغيّرت كلمة المرور.");
+}
+
+/** المشرف ينشئ رابط استرجاع صالح 24 ساعة ولمرة واحدة، ويرسله للمستخدم بنفسه. */
+export async function createResetLinkAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  return run(async () => {
+    await actor("ADMIN");
+    const user = await db.user.findUnique({ where: { id: str(fd, "id") } });
+    if (!user || user.role === "ADMIN") throw new FlowError("المستخدم غير موجود.");
+    const token = randomBytes(32).toString("base64url");
+    await db.passwordReset.deleteMany({ where: { userId: user.id } });
+    await db.passwordReset.create({ data: { userId: user.id, tokenHash: sha256(token), expiresAt: new Date(Date.now() + 864e5) } });
+    const h = await headers();
+    const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("x-forwarded-host") ?? h.get("host")}`;
+    return { ok: `أرسل هذا الرابط لـ ${user.name} (صالح 24 ساعة، لمرة واحدة): ${origin}/reset/${token}` };
+  });
+}
+
+export async function resetPasswordAction(_: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const next = rawPassword(fd, "next");
+    checkNewPassword(next);
+    const reset = await db.passwordReset.findUnique({ where: { tokenHash: sha256(str(fd, "token", 200)) } });
+    if (!reset || reset.usedAt || reset.expiresAt < new Date()) throw new FlowError("الرابط منتهي أو مستخدم. اطلب رابط جديد من المشرف.");
+    const passwordHash = await hashPassword(next);
+    await db.$transaction(async (tx) => {
+      const used = await tx.passwordReset.updateMany({ where: { id: reset.id, usedAt: null }, data: { usedAt: new Date() } });
+      if (used.count !== 1) throw new FlowError("الرابط مستخدم.");
+      await tx.user.update({ where: { id: reset.userId }, data: { passwordHash } });
+      await tx.session.deleteMany({ where: { userId: reset.userId } }); // يطلّع كل الأجهزة
+    });
+  } catch (e) {
+    if (e instanceof FlowError) return { error: e.message };
+    throw e;
+  }
+  redirect("/login?reset=1");
 }

@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { updateProfileAction } from "@/lib/actions";
 import { PageTitle } from "@/components/ui";
 import { ActionForm, Submit } from "@/components/forms";
+import { PasswordForm } from "@/components/password-form";
 
 export const metadata = { title: "ملفي" };
 
@@ -40,6 +41,7 @@ export default async function Profile({ searchParams }: { searchParams: Promise<
         </div>
         <Submit>احفظ الملف</Submit>
       </ActionForm>
+      <PasswordForm />
     </>
   );
 }

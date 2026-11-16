@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { P, PLATFORMS } from "@/lib/status";
+import { getSettings } from "@/lib/settings";
 import { computeEarning, creatorCap } from "@/lib/money";
 import { Empty, Num, PageTitle, Sar, Section, Stat, StatusBadge } from "@/components/ui";
 
@@ -17,6 +18,11 @@ const NEXT: Record<string, string> = {
 export default async function CreatorHome() {
   const user = await requireRole("CREATOR");
   const parts = await db.participation.findMany({ where: { creatorId: user.id }, include: { campaign: true }, orderBy: { updatedAt: "desc" } });
+  const { viewsWaitDays } = await getSettings();
+  const now = Date.now();
+  // المطلوب من الصانع الآن. المنشور يصير «ادخل المشاهدات» بعد ما تمر مدة الانتظار.
+  const nextStep = (p: (typeof parts)[number]) =>
+    p.status === P.PUBLISHED && p.publishedAt && p.publishedAt.getTime() + viewsWaitDays * 864e5 <= now ? "ادخل عدد المشاهدات" : NEXT[p.status];
   const approved = parts.filter((p) => p.status === P.VIEWS_APPROVED || p.status === P.PAID);
   const earned = approved.reduce((a, p) => a + (p.netHalalas ?? 0), 0);
   const paid = parts.filter((p) => p.status === P.PAID).reduce((a, p) => a + (p.netHalalas ?? 0), 0);
@@ -56,7 +62,7 @@ export default async function CreatorHome() {
                     <StatusBadge kind="participation" status={p.status} />
                   </div>
                   {p.netHalalas !== null && <p className="mt-3"><span className="eyebrow">صافي مستحقك </span><Sar h={p.netHalalas} className="text-3xl" /></p>}
-                  {NEXT[p.status] && <p className="mt-3 inline-block bg-flame px-2 py-1 text-sm font-semibold text-white">{NEXT[p.status]}</p>}
+                  {nextStep(p) && <p className="mt-3 inline-block bg-flame px-2 py-1 text-sm font-semibold text-white">{nextStep(p)}</p>}
                 </Link>
               </li>
             ))}

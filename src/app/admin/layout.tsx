@@ -17,6 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: "/admin", label: "الرئيسية", exact: true, badge: c + p },
         { href: "/admin/campaigns", label: "الحملات" },
         { href: "/admin/payments", label: "التحويلات" },
+        { href: "/admin/users", label: "المستخدمين" },
         { href: "/admin/settings", label: "الإعدادات" },
       ]}>
       {children}
