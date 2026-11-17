@@ -10,8 +10,10 @@
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
     "db:demo": "tsx prisma/seed.ts --demo",
-    "setup": "prisma db push && tsx prisma/seed.ts --demo",
-    "test": "tsx --test src/lib/money.test.ts"
+    "setup": "prisma migrate deploy && tsx prisma/seed.ts --demo",
+    "test": "tsx --test src/lib/money.test.ts",
+    "start:prod": "sh scripts/start.sh",
+    "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
     "@fontsource/ibm-plex-sans-arabic": "^5.3.0",
@@ -33,5 +35,8 @@
     "tailwindcss": "^4.3.5",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.9"
   }
 }

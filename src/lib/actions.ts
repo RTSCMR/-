@@ -97,15 +97,18 @@ let dummyHash: Promise<string> | undefined;
 export async function loginAction(_: ActionState, fd: FormData): Promise<ActionState> {
   const email = str(fd, "email", 200).toLowerCase();
   const password = typeof fd.get("password") === "string" ? (fd.get("password") as string) : "";
-  if (!loginAllowed(email)) return { error: "محاولات كثيرة. انتظر ربع ساعة وجرّب." };
+  const h = await headers();
+  const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || h.get("x-real-ip") || "local";
+  const key = `${email}|${ip}`;
+  if (!loginAllowed(key)) return { error: "محاولات كثيرة. انتظر ربع ساعة وجرّب." };
   const user = email ? await db.user.findUnique({ where: { email } }) : null;
   // نقارن دايماً حتى لو الإيميل مو موجود، عشان وقت الرد ما يكشف وجود الحساب
   const ok = await verifyPassword(password, user?.passwordHash ?? (await (dummyHash ??= hashPassword("alf-dummy-password"))));
   if (!user || !ok) {
-    loginFailed(email);
+    loginFailed(key);
     return { error: "الإيميل أو كلمة المرور غير صحيحة." };
   }
-  loginSucceeded(email);
+  loginSucceeded(key);
   await createSession(user.id);
   redirect(homeFor(user.role));
 }

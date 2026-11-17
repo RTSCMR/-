@@ -14,14 +14,29 @@ const ago = (d: number) => new Date(Date.now() - d * DAY);
 async function main() {
   const email = (process.env.ADMIN_EMAIL || "admin@alf.sa").toLowerCase();
   const password = process.env.ADMIN_PASSWORD || "change-me-please";
+  const production = process.env.NODE_ENV === "production";
   await db.setting.upsert({ where: { id: 1 }, update: {}, create: { id: 1 } });
-  const admin = await db.user.upsert({
-    where: { email }, update: {},
-    create: { email, name: "المشرف", role: "ADMIN", passwordHash: await bcrypt.hash(password, 12) },
-  });
-  console.log(`✓ المشرف: ${email}`);
+
+  const existing = await db.user.findUnique({ where: { email } });
+  if (!existing) {
+    // في الإنتاج ما ننشئ مشرف بكلمة مرور ضعيفة أو افتراضية
+    if (production && (password === "change-me-please" || password.length < 12)) {
+      console.error("✗ ADMIN_PASSWORD لازم يكون 12 حرف على الأقل ومو القيمة الافتراضية. ما انشأ حساب المشرف.");
+      process.exitCode = 1;
+      return;
+    }
+    await db.user.create({ data: { email, name: "المشرف", role: "ADMIN", passwordHash: await bcrypt.hash(password, 12) } });
+    console.log(`✓ انشأ المشرف: ${email}`);
+  } else {
+    console.log(`✓ المشرف موجود: ${email}`);
+  }
+  const admin = await db.user.findUniqueOrThrow({ where: { email } });
 
   if (!process.argv.includes("--demo")) return;
+  if (production) {
+    console.error("✗ البيانات التجريبية ممنوعة في الإنتاج.");
+    return;
+  }
   if (await db.user.findUnique({ where: { email: "merchant@demo.alf" } })) {
     console.log("البيانات التجريبية موجودة من قبل.");
     return;
